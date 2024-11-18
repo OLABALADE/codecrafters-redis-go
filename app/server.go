@@ -63,9 +63,7 @@ func parseRequest(req []byte, data map[string]string) string {
 		return "+OK\r\n"
 
 	case "get":
-		fmt.Println(body)
 		item, prs := data[body[4]]
-        fmt.Println(prs)
 		if !prs {
 			return "$-1\r\n"
 		}
