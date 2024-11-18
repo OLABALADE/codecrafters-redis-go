@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strings"
 )
 
 func main() {
@@ -39,7 +40,26 @@ func handleClient(conn net.Conn) {
 			return
 		}
 
-		fmt.Println(string(buf))
-		conn.Write([]byte("+PONG\r\n"))
+		par_req := parseRequest(buf)
+		conn.Write([]byte(par_req))
 	}
+}
+
+func parseRequest(req []byte) string {
+    var res string
+	body := strings.Split(string(req), "\r\n")
+	cmd := strings.ToLower(body[2])
+
+	switch cmd {
+	case "echo":
+		mes := body[4]
+		res = fmt.Sprint("+", mes, "\r\n")
+		return res
+
+    case "ping":
+        res = "+PONG\r\n"
+        return res
+	}
+
+	return ""
 }
