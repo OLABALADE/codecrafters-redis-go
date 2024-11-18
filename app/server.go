@@ -46,19 +46,28 @@ func handleClient(conn net.Conn) {
 }
 
 func parseRequest(req []byte) string {
-    var res string
+	data := map[string]string{}
 	body := strings.Split(string(req), "\r\n")
 	cmd := strings.ToLower(body[2])
 
 	switch cmd {
 	case "echo":
 		mes := body[4]
-		res = fmt.Sprint("+", mes, "\r\n")
-		return res
+		return fmt.Sprint("+", mes, "\r\n")
 
-    case "ping":
-        res = "+PONG\r\n"
-        return res
+	case "ping":
+		return "+PONG\r\n"
+
+	case "set":
+		data[body[4]] = body[5]
+		return "+OK\r\n"
+
+	case "get":
+		item, prs := data[body[4]]
+		if !prs {
+			return "$-1\r\n"
+		}
+        return fmt.Sprintf("$%d\r\n%s\r\n", len(item), item)
 	}
 
 	return ""
