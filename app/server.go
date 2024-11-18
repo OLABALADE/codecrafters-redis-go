@@ -31,6 +31,7 @@ func main() {
 }
 func handleClient(conn net.Conn) {
 	defer conn.Close()
+    data := map[string]string{}
 	for {
 		buf := make([]byte, 1024)
 		_, err := conn.Read(buf)
@@ -40,13 +41,12 @@ func handleClient(conn net.Conn) {
 			return
 		}
 
-		par_req := parseRequest(buf)
+		par_req := parseRequest(buf, data)
 		conn.Write([]byte(par_req))
 	}
 }
 
-func parseRequest(req []byte) string {
-	data := map[string]string{}
+func parseRequest(req []byte, data map[string]string) string {
 	body := strings.Split(string(req), "\r\n")
 	cmd := strings.ToLower(body[2])
 
@@ -59,15 +59,17 @@ func parseRequest(req []byte) string {
 		return "+PONG\r\n"
 
 	case "set":
-		data[body[4]] = body[5]
+		data[body[4]] = body[6]
 		return "+OK\r\n"
 
 	case "get":
+		fmt.Println(body)
 		item, prs := data[body[4]]
+        fmt.Println(prs)
 		if !prs {
 			return "$-1\r\n"
 		}
-        return fmt.Sprintf("$%d\r\n%s\r\n", len(item), item)
+		return fmt.Sprintf("$%d\r\n%s\r\n", len(item), item)
 	}
 
 	return ""
