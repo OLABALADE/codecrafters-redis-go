@@ -103,7 +103,6 @@ func clearExpired(db *map[string]*data) {
 		if item.expire != 0 {
 			now := time.Now()
 			p := now.Sub(item.created).Milliseconds()
-			fmt.Println(p)
 			if p > item.expire {
 				fmt.Println("Hello")
 				delete(df, i)
