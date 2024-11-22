@@ -4,8 +4,14 @@ import (
 	"fmt"
 	"net"
 	"os"
-	"strings"
+	"time"
 )
+
+type data struct {
+	value   string
+	created time.Time
+	expire  int64
+}
 
 func main() {
 	fmt.Println("Logs from your program will appear here!")
@@ -31,7 +37,7 @@ func main() {
 }
 func handleClient(conn net.Conn) {
 	defer conn.Close()
-    data := map[string]string{}
+	db := &map[string]*data{}
 	for {
 		buf := make([]byte, 1024)
 		_, err := conn.Read(buf)
@@ -40,35 +46,8 @@ func handleClient(conn net.Conn) {
 			fmt.Println(err)
 			return
 		}
-
-		par_req := parseRequest(buf, data)
-		conn.Write([]byte(par_req))
+		clearExpired(db)
+		res, err := handleRequest(buf, db)
+		conn.Write(res)
 	}
-}
-
-func parseRequest(req []byte, data map[string]string) string {
-	body := strings.Split(string(req), "\r\n")
-	cmd := strings.ToLower(body[2])
-
-	switch cmd {
-	case "echo":
-		mes := body[4]
-		return fmt.Sprint("+", mes, "\r\n")
-
-	case "ping":
-		return "+PONG\r\n"
-
-	case "set":
-		data[body[4]] = body[6]
-		return "+OK\r\n"
-
-	case "get":
-		item, prs := data[body[4]]
-		if !prs {
-			return "$-1\r\n"
-		}
-		return fmt.Sprintf("$%d\r\n%s\r\n", len(item), item)
-	}
-
-	return ""
 }
